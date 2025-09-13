@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>حاسبة التقريب — أقرب مائة</title>
+  <meta name="description" content="أداة مدرسية بسيطة لتقريب الأعداد إلى أقرب مائة (مع خيار العشرات والألف والأجزاء العشرية) مع تفسير خطوة بخطوة.">
+  <style>
+    :root{
+      --bg:#f8fafc;      /* slate-50 */
+      --card:#ffffff;    /* white */
+      --ink:#0f172a;     /* slate-900 */
+      --muted:#475569;   /* slate-600 */
+      --primary:#0ea5e9; /* sky-500 */
+      --accent:#22c55e;  /* green-500 */
+      --danger:#ef4444;  /* red-500 */
+      --ring:#bae6fd;    /* sky-200 */
+      --radius:16px;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family:"Cairo","Noto Naskh Arabic","Noto Sans Arabic",system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      background:var(--bg);
+      color:var(--ink);
+      line-height:1.7;
+    }
+    .container{
+      max-width:920px;
+      margin:24px auto;
+      padding:0 16px;
+    }
+    .card{
+      background:var(--card);
+      border-radius:var(--radius);
+      box-shadow:0 20px 40px rgba(2,6,23,.08);
+      padding:20px;
+      border:1px solid #e2e8f0;
+    }
+    h1{
+      font-size:clamp(22px,3.8vw,30px);
+      margin:0 0 6px;
+      letter-spacing:.2px;
+    }
+    .subtitle{color:var(--muted); margin:0 0 16px}
+    .hdr{display:flex; align-items:center; justify-content:space-between; gap:12px}
+    .hdr .logo{height:56px; max-width:140px; object-fit:contain; mix-blend-mode:multiply}
+
+    .grid{display:grid; gap:14px}
+    @media (min-width:720px){ .grid-2{grid-template-columns:1fr 1fr} }
+    label{display:block; font-weight:700; margin-bottom:6px}
+    input[type="number"], select{
+      width:100%; padding:12px 14px; border-radius:12px;
+      border:1px solid #cbd5e1; background:#fff; color:var(--ink);
+      outline:none; font-size:16px;
+    }
+    input[type="number"]:focus, select:focus{border-color:var(--primary); box-shadow:0 0 0 4px var(--ring)}
+    .row{display:flex; gap:10px; flex-wrap:wrap}
+    .btn{
+      border:0; padding:12px 16px; border-radius:12px; cursor:pointer; font-weight:700; font-size:16px
+    }
+    .btn-primary{background:var(--primary); color:white}
+    .btn-ghost{background:transparent; color:var(--muted); border:1px solid #cbd5e1}
+    .kpi{
+      display:grid; gap:10px;
+      grid-template-columns: 1fr;
+    }
+    @media(min-width:560px){
+      .kpi{ grid-template-columns: 1fr 1fr; }
+    }
+    .pill{
+      background:#f1f5f9; border-radius:12px; padding:10px 12px; font-weight:700; text-align:center
+    }
+    .result-box{ border:1px solid #e2e8f0; border-radius:12px; padding:14px; background:#f8fafc }
+    .result-value{ font-size:clamp(22px,4vw,28px); font-weight:900; color:#111827 }
+    .ok{color:var(--accent); font-weight:700}
+    .no{color:var(--danger); font-weight:700}
+    .rule{
+      background:linear-gradient(135deg,#ecfeff,#f0fdf4);
+      border:1px dashed #86efac; padding:12px; border-radius:12px; color:#064e3b
+    }
+    .footer{
+      display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;
+      font-size:14px; color:var(--muted); margin-top:8px
+    }
+    .tiny{font-size:13px; color:#64748b}
+    a{color:#0369a1; text-decoration:none}
+    .badge{display:inline-block; padding:4px 8px; font-size:12px; background:#e0f2fe; color:#075985; border-radius:999px; margin-inline-start:6px}
+    .hl{background: #fef9c3; padding:0 6px; border-radius:6px}
+    .sep{height:1px; background:#e2e8f0; margin:14px 0}
+    .mono{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="card">
+      
+      <div class="hdr">
+        <h1>حاسبة التقريب</h1>
+        <img class="logo" src="https://d.top4top.io/p_35209x7gh1.png" alt="شعار ملتقى معلمي ومعلمات الرياضيات" />
+      </div>
+      <p class="subtitle">أدخِل رقمًا وسيقوم البرنامج بتقريبه وفق القاعدة المدرسية: <span class="hl">انظر إلى الرقم على يمين المنزلة</span> — إذا كان <b>5</b> فأكثر نُزيد منزلة الهدف واحدًا، وإلا نُبقيها ونحوّل ما بعدها إلى أصفار.</p>
+
+
+      <div class="grid grid-2" style="margin-top:10px">
+        <div>
+          <label for="num">الرقم</label>
+          <input id="num" type="number" step="any" placeholder="مثال: 871 أو 41 أو 34.4317" value="41"/>
+        </div>
+        <div>
+          <label for="place">التقريب إلى</label>
+          <select id="place">
+            <option value="100">أقرب مائة (افتراضي)</option>
+            <option value="10">أقرب عشرة</option>
+            <option value="1000">أقرب ألف</option>
+            <option value="0.1">أقرب جزء من عشرة (أعشار)</option>
+            <option value="0.01">أقرب جزء من مائة (أجزاء المائة)</option>
+            <option value="0.001">أقرب جزء من ألف (أجزاء الألف)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="row" style="margin-top:10px">
+        <button class="btn btn-primary" onclick="compute()">احسب</button>
+        <button class="btn btn-ghost" onclick="resetAll()">إعادة التعيين</button>
+        <button class="btn btn-ghost" onclick="window.print()">طباعة</button>
+      </div>
+
+      <div class="sep"></div>
+
+      <div class="kpi">
+        <div class="pill">العدد قبل التقريب: <span id="before" class="mono">—</span></div>
+        <div class="pill">المنزلة المستهدفة: <span id="targetPlace" class="mono">—</span></div>
+      </div>
+
+      <div class="result-box" style="margin-top:12px">
+        <div>النتيجة بعد التقريب:</div>
+        <div id="after" class="result-value mono">—</div>
+        <div id="steps" class="tiny" style="margin-top:8px"></div>
+      </div>
+
+      <p class="rule" style="margin-top:12px">
+        <b>القاعدة المختصرة:</b> حدِّد منزلة الهدف (مثلاً: المئات) ← انظر للمنزلة التي على يمينها مباشرة (العشرات) ← إذا كانت <b>≥ 5</b> قرّب <span class="ok">لأعلى</span>، وإلا قرّب <span class="no">لأسفل</span>، ثم حوِّل كل ما بعدها إلى أصفار.
+      </p>
+
+      <details style="margin-top:10px">
+        <summary><b>أمثلة سريعة</b></summary>
+        <ul style="margin-top:8px">
+          <li>871 إلى أقرب مائة ⟵ العشرات = 7 (≥5) ⟹ <b>900</b>.</li>
+          <li>834 إلى أقرب مائة ⟵ العشرات = 3 (&lt;5) ⟹ <b>800</b>.</li>
+          <li>41 إلى أقرب مائة ⟵ آخر رقمين = 41 (&lt;50) ⟹ <b>0</b>.</li>
+          <li>34.4317 إلى أقرب جزء من ألف ⟵ الرقم الذي على يمين الألف = 7 (≥5) ⟹ <b>34.432</b>.</li>
+        </ul>
+      </details>
+
+      <div class="sep"></div>
+      <div class="footer">
+        <div>برمجة: أ/ فاطمة هزازي — ملتقى معلمي ومعلمات الرياضيات، ملتقى التعليم التفاعلي</div>
+        <div><a href="https://t.me/ITG_KSA" target="_blank" rel="noopener">رابط الملتقى</a></div>
+      </div>
+    </div>
+  </div>
+
+<script>
+  const placeNames = {
+    10: "العشرات",
+    100: "المئات",
+    1000: "الآلاف",
+    0.1: "أجزاء العشرة (الأعشار)",
+    0.01: "أجزاء المائة",
+    0.001: "أجزاء الألف"
+  };
+
+  function resetAll(){
+    document.getElementById('num').value = "";
+    document.getElementById('place').value = "100";
+    setOut("—","—","—");
+  }
+
+  function setOut(before, place, after, stepsHtml=""){
+    document.getElementById('before').textContent = before;
+    document.getElementById('targetPlace').textContent = place;
+    document.getElementById('after').textContent = after;
+    document.getElementById('steps').innerHTML = stepsHtml;
+  }
+
+  function roundTo(value, place){
+    const p = Number(place);
+    if (p >= 1){
+      return Math.round(value / p) * p;
+    }else{
+      const factor = Math.round(1 / p);
+      return Math.round(value * factor) / factor;
+    }
+  }
+
+  function compute(){
+    const raw = document.getElementById('num').value.trim();
+    const place = document.getElementById('place').value;
+    if (raw === "" || isNaN(Number(raw))){
+      alert("من فضلك أدخِل رقمًا صالحًا.");
+      return;
+    }
+    const x = Number(raw);
+    const p = Number(place);
+    const r = roundTo(x, p);
+
+    // Build step-by-step
+    let stepLines = [];
+    let placeName = placeNames[place] || "—";
+
+    if (p >= 1){
+      // integers: look at the chunk to the right
+      const mod = Math.abs(x) % p; // the part to the right of target place
+      const threshold = p/2;
+
+      // For hundreds we can show "آخر رقمين"
+      if (p === 100){
+        const lastTwo = Math.floor(mod); // same as mod for positive less than 100
+        stepLines.push(`ننظر إلى <b>آخر رقمين</b> = <b class="mono">${lastTwo}</b> (للمئات نقارن بـ <span class="mono">50</span>).`);
+        stepLines.push(lastTwo >= 50 ? `لأن ${lastTwo} ≥ 50 إذن نقرّب <span class="ok">لأعلى</span>.` : `لأن ${lastTwo} &lt; 50 إذن نقرّب <span class="no">لأسفل</span>.`);
+      } else if (p === 10){
+        const ones = Math.floor(mod); // ones digit
+        stepLines.push(`ننظر إلى <b>الآحاد</b> = <b class="mono">${ones}</b> (للعشرات نقارن بـ <span class="mono">5</span>).`);
+        stepLines.push(ones >= 5 ? `لأن ${ones} ≥ 5 إذن نقرّب <span class="ok">لأعلى</span>.` : `لأن ${ones} &lt; 5 إذن نقرّب <span class="no">لأسفل</span>.`);
+      } else if (p === 1000){
+        const lastThree = Math.floor(mod);
+        stepLines.push(`ننظر إلى <b>آخر ثلاثة أرقام</b> = <b class="mono">${lastThree}</b> (للآلاف نقارن بـ <span class="mono">500</span>).`);
+        stepLines.push(lastThree >= 500 ? `لأن ${lastThree} ≥ 500 إذن نقرّب <span class="ok">لأعلى</span>.` : `لأن ${lastThree} &lt; 500 إذن نقرّب <span class="no">لأسفل</span>.`);
+      } else {
+        stepLines.push(`نقارن الجزء على يمين <b>${placeName}</b> بحد المنتصف <span class="mono">${threshold}</span>.`);
+        stepLines.push(mod >= threshold ? `الجزء ≥ ${threshold} ⟹ <span class="ok">لأعلى</span>.` : `الجزء &lt; ${threshold} ⟹ <span class="no">لأسفل</span>.`);
+      }
+
+    } else {
+      // decimals: e.g., to 0.01 -> look at the next decimal
+      const factor = Math.round(1/p); // e.g. 100 for 0.01
+      const nextDigit = Math.floor(Math.abs(x) * factor * 10) % 10; // digit to the right
+      stepLines.push(`نحدد <b>${placeName}</b> ثم ننظر إلى الرقم الذي <b>على يمينها</b> = <b class="mono">${nextDigit}</b>.`);
+      stepLines.push(nextDigit >= 5 ? `لأن ${nextDigit} ≥ 5 إذن نقرّب <span class="ok">لأعلى</span>.` : `لأن ${nextDigit} &lt; 5 إذن نقرّب <span class="no">لأسفل</span>.`);
+    }
+
+    const stepsHtml = stepLines.map(s => `• ${s}`).join("<br>");
+
+    setOut(x, placeName, r, stepsHtml);
+  }
+
+  // compute initial example
+  compute();
+</script>
+</body>
+</html>
